@@ -16,3 +16,16 @@ export interface Transaction {
   type: TransactionType;
   category: IncomeCategory | ExpenseCategory;
 }
+
+export interface Balance {
+  income: number;
+  expense: number;
+  balance: number;
+}
+
+export interface CalendarContent {
+  start: string;
+  income: string;
+  expense: string;
+  balance: string;
+}

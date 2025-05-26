@@ -13,6 +13,8 @@ import { CssBaseline } from "@mui/material";
 import { Transaction } from "./types/index";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase";
+import { format } from "date-fns";
+import { formatMonth } from "./utils/formatting";
 
 function App() {
   // Firestoreエラーかどうかを判定する型ガード
@@ -22,12 +24,13 @@ function App() {
     return typeof err === "object" && err != null && "code" in err;
   }
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const a = format(currentMonth, "yyyy-MM");
 
   useEffect(() => {
     const fetcheTransactions = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "Transactions"));
-        console.log(querySnapshot);
         const transactionsData = querySnapshot.docs.map((doc) => {
           // doc.data() is never undefined for query doc snapshots
           // console.log(doc.id, " => ", doc.data());
@@ -36,7 +39,6 @@ function App() {
             id: doc.id,
           } as Transaction;
         });
-        console.log(transactionsData);
         setTransactions(transactionsData);
       } catch (err) {
         // error
@@ -49,13 +51,24 @@ function App() {
     };
     fetcheTransactions();
   }, []);
+  const monthlyTransactions = transactions.filter((transactions) => {
+    return transactions.date.startsWith(formatMonth(currentMonth));
+  });
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <Routes>
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<Home />} />
+            <Route
+              index
+              element={
+                <Home
+                  monthlyTransactions={monthlyTransactions}
+                  setCurrentMonth={setCurrentMonth}
+                />
+              }
+            />
             <Route path="/report" element={<Report />} />
             <Route path="*" element={<NoMatch />} />
           </Route>
