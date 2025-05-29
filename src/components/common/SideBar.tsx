@@ -105,11 +105,6 @@ const SideBar = ({
             width: drawerWidth,
           },
         }}
-        slotProps={{
-          root: {
-            keepMounted: true, // Better open performance on mobile.
-          },
-        }}
       >
         {drawer}
       </Drawer>
