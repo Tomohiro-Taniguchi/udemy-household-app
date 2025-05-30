@@ -7,8 +7,13 @@ import {
   Title,
   Tooltip,
   Legend,
+  ChartData,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { Transaction } from "../types";
+import { calculateDailyBalance } from "../utils/financeCalculations";
+import { Box, Typography, useTheme } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 
 ChartJS.register(
   CategoryScale,
@@ -19,7 +24,13 @@ ChartJS.register(
   Legend
 );
 
-const BarChart = () => {
+interface BarChartProps {
+  monthlyTransactions: Transaction[];
+  isLoading: boolean;
+}
+
+const BarChart = ({ monthlyTransactions, isLoading }: BarChartProps) => {
+  const theme = useTheme();
   const options = {
     maintainAspectRatio: false,
     responsive: true,
@@ -33,32 +44,44 @@ const BarChart = () => {
       },
     },
   };
-  const labels = [
-    "2025-04-10",
-    "2025-04-15",
-    "2025-04-17",
-    "2025-04-18",
-    "2025-04-20",
-    "2025-04-26",
-    "2025-04-30",
-  ];
+  const dailyBalances = calculateDailyBalance(monthlyTransactions);
+  const dateLabels = Object.keys(dailyBalances).sort();
+  const expenseData = dateLabels.map((day) => dailyBalances[day].expense);
+  const incomeData = dateLabels.map((day) => dailyBalances[day].income);
 
-  const data = {
-    labels,
+  const data: ChartData<"bar"> = {
+    labels: dateLabels,
     datasets: [
       {
         label: "支出",
-        data: [100, 200, 300, 400, 500, 600, 700],
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        data: expenseData,
+        backgroundColor: theme.palette.expenseColor.light,
       },
       {
         label: "収入",
-        data: [100, 200, 300, 400, 500, 600, 700],
-        backgroundColor: "rgba(53, 162, 235, 0.5)",
+        data: incomeData,
+        backgroundColor: theme.palette.incomeColor.light,
       },
     ],
   };
-  return <Bar options={options} data={data} />;
+  return (
+    <Box
+      sx={{
+        flexGrow: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {isLoading ? (
+        <CircularProgress />
+      ) : monthlyTransactions.length > 0 ? (
+        <Bar options={options} data={data} />
+      ) : (
+        <Typography>データがありません</Typography>
+      )}
+    </Box>
+  );
 };
 
 export default BarChart;
